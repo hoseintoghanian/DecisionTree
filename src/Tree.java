@@ -1,10 +1,12 @@
-import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Tree {
     int depth;
     int featureIndex;
     int threshold;
     Node root;
+
     public Tree(int featureIndex, int threshold) {
         this.featureIndex = featureIndex;
         this.threshold = threshold;
@@ -14,39 +16,7 @@ public class Tree {
         this.root = root;
     }
 
-    public int getDepth() {
-        return depth;
-    }
-
-    public int setDepth() {
-        return depth;
-    }
-
-    public int getFeatureIndex() {
-        return featureIndex;
-    }
-
-    public void setFeatureIndex(int featureIndex) {
-        this.featureIndex = featureIndex;
-    }
-
-    public int getThreshold() {
-        return threshold;
-    }
-
-    public void setThreshold(int threshold) {
-        this.threshold = threshold;
-    }
-
-    public Node getRoot() {
-        return root;
-    }
-
-    public void setRoot(Node root) {
-        this.root = root;
-    }
-
-    // Calculate information gain for every child of the parent node
+    //Calculate information gain for every child of the parent node
     public float informationGain(Node parentNode) {
         float[] weight = new float[parentNode.getChildrenNodes().size()];
         float sumEntropies = 0;
@@ -69,15 +39,18 @@ public class Tree {
     }
 
     //calculate entropy for a set of numbers
-    public float entropy(float[] labels) {
-        float[] classLabels =  Arrays.stream(labels).distinct().toArray();
-        float entropy = 0;
-
-        for (float cls : classLabels) {
-            float pCls = (float) Arrays.stream(labels).filter(value -> value == cls).count() / labels.length;
-            entropy += -pCls * Math.log(pCls) / Math.log(2);
+    public float entropy(float[] label) {
+        Map<Integer, Integer> countMap = new HashMap<>();
+        int sum = 0;
+        for (float value : label) {
+            countMap.put((int) value, countMap.getOrDefault(value, 0) + 1);
+            sum++;
         }
-
+        float entropy = 0;
+        for (float count : countMap.values()) {
+            float probability = count / sum;
+            entropy -= probability * (Math.log(probability) / Math.log(2));
+        }
         return entropy;
     }
 

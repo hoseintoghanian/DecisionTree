@@ -35,49 +35,47 @@ public class DecisionTreeClassifier {
 //        }
 //    }
 
-    public Node buildTree(float[][] dataset, int currDepth, int maxDepth, ArrayList featureIndexArray) {
-        // Split the dataset
-        Map<String, Object> bestSplit = getBestSplit(dataset, dataset.length, dataset[0].length, label);
-        // Extract information from the best split
+    public Node buildTree(float[][] feature, int currDepth, int maxDepth, ArrayList featureIndexArray) {
+        Map<String, Object> bestSplit = getBestSplit(feature, feature.length, feature[0].length, label);
         int featureIndex = (int) bestSplit.get("feature_index");
         featureIndexArray.remove(featureIndex);
         float infoGain = (float) bestSplit.get("info_gain");
         Node parent = (Node) bestSplit.get("parent_node");
-        float[][] dataset1 = new float[dataset.length][dataset[0].length];
-        if (bestSplit.size() > 0)
-            dataset1 = (float[][]) bestSplit.get("child_dataset1");
-        float[][] dataset2 = new float[dataset.length][dataset[0].length];
-        if (bestSplit.size() > 1)
-            dataset2 = (float[][]) bestSplit.get("child_dataset2");
-        float[][] dataset3 = new float[dataset.length][dataset[0].length];
-        if (bestSplit.size() > 2)
-            dataset3 = (float[][]) bestSplit.get("child_dataset3");
-        float[][] dataset4 = new float[dataset.length][dataset[0].length];
-        if (bestSplit.size() > 3)
-            dataset4 = (float[][]) bestSplit.get("child_dataset4");
-        float[][] dataset5 = new float[dataset.length][dataset[0].length];
-        if (bestSplit.size() > 4)
-            dataset5 = (float[][]) bestSplit.get("child_dataset5");
+//        float[][] dataset1 = new float[feature.length][feature[0].length];
+//        if (bestSplit.size() > 0)
+//            dataset1 = (float[][]) bestSplit.get("child_dataset1");
+//        float[][] dataset2 = new float[feature.length][feature[0].length];
+//        if (bestSplit.size() > 1)
+//            dataset2 = (float[][]) bestSplit.get("child_dataset2");
+//        float[][] dataset3 = new float[feature.length][feature[0].length];
+//        if (bestSplit.size() > 2)
+//            dataset3 = (float[][]) bestSplit.get("child_dataset3");
+//        float[][] dataset4 = new float[feature.length][feature[0].length];
+//        if (bestSplit.size() > 3)
+//            dataset4 = (float[][]) bestSplit.get("child_dataset4");
+//        float[][] dataset5 = new float[feature.length][feature[0].length];
+//        if (bestSplit.size() > 4)
+//            dataset5 = (float[][]) bestSplit.get("child_dataset5");
         // Check conditions for building subtrees
         if (infoGain > 0 && currDepth <= maxDepth) {
             for (int i = 0; i < parent.getChildrenNodes().size(); i++) {
                 Node subTree;
-                if (!parent.getChildrenByIndex(i).getLeaf())
+                if (!parent.getChildrenByIndex(i).isLeaf)
                     subTree = buildTree((float[][]) bestSplit.get(String.format("child_dataset%d", i + 1)), currDepth + 1, maxDepth, featureIndexArray);
             }
             return new Node(parent.getValue(), false);
         }
         return new Node((float[]) bestSplit.get("value"), true);
-//        float[][] X = new float[dataset.length][dataset[0].length - 1];
-//        float[] Y = new float[dataset.length];
-//        for (int i = 0; i < dataset.length; i++) {
-//            System.arraycopy(dataset[i], 0, X[i], 0, dataset[i].length - 1);
-//            Y[i] = dataset[i][dataset[i].length - 1];
+//        float[][] X = new float[feature.length][feature[0].length - 1];
+//        float[] Y = new float[feature.length];
+//        for (int i = 0; i < feature.length; i++) {
+//            System.arraycopy(feature[i], 0, X[i], 0, feature[i].length - 1);
+//            Y[i] = feature[i][feature[i].length - 1];
 //        }
 //        int numSamples = X.length;
 //        int numFeatures = X[0].length + 1;
 //        if (numSamples >= minSamplesSplit && currDepth <= maxDepth) {
-//            Map<String, Object> bestSplit = getBestSplit(dataset, numSamples, numFeatures);
+//            Map<String, Object> bestSplit = getBestSplit(feature, numSamples, numFeatures);
 //
 //            if ((float) bestSplit.get("info_gain") > 0) {
 //                Node leftSubtree = buildTree((float[][]) bestSplit.get("dataset_left"), currDepth + 1,
@@ -91,8 +89,7 @@ public class DecisionTreeClassifier {
 //        float[] leafValue = calculateLeafValue(Y);
     }
 
-    //check for leaf or decision Node
-    private boolean checkLeaf(float[][] splitResult, int featureIndex) {
+    private boolean isLeaf(float[][] splitResult, int featureIndex) {
         float equals = splitResult[0][17];
         for (int j = 0; j < splitResult.length; j++) {
             if (splitResult[j][17] != equals)
@@ -101,7 +98,6 @@ public class DecisionTreeClassifier {
         return true;
     }
 
-    //calculates Possible threshold and find the best split for a given dataset
     public Map<String, Object> getBestSplit(float[][] dataset, int numSamples, int numFeatures, float[] label) {
         Map<String, Object> bestSplit = new HashMap<>();
         float maxInfoGain = Float.NEGATIVE_INFINITY;
@@ -159,7 +155,6 @@ public class DecisionTreeClassifier {
         return bestSplit;
     }
 
-    //gets split result and add them to parent Node
     private void buildChildren(List<float[][]> splitResult, Node parent, int featureIndex, int numSamples) {
         if (!splitResult.isEmpty()) {
             for (int i = 0; i < splitResult.size(); i++) {
@@ -169,7 +164,7 @@ public class DecisionTreeClassifier {
                     for (int j = 0; j < splitResult.get(i).length; j++) {
                         childValues[j] = splitResult.get(i)[j][featureIndex];
                     }
-                    if (checkLeaf(splitResult.get(i), featureIndex)) {
+                    if (isLeaf(splitResult.get(i), featureIndex)) {
                         //childNode is a leaf Node
                         childNode = new Node(childValues, true);
                         System.out.println("Gorgali leaf");
@@ -184,7 +179,7 @@ public class DecisionTreeClassifier {
         }
     }
 
-//    public void fit(float[][] X, float[] Y) {
+//        public void fit(float[][] X, float[] Y) {
 //        float[][] dataset = new float[X.length][X[0].length + 1];
 //        for (int i = 0; i < X.length; i++) {
 //            System.arraycopy(X[i], 0, dataset[i], 0, X[i].length);
@@ -193,7 +188,6 @@ public class DecisionTreeClassifier {
 //
 //        root = buildTree(dataset, 0);
 //    }
-
 //    public float[] predict(float[][] X) {
 //        float[] predictions = new float[X.length];
 //        for (int i = 0; i < X.length; i++) {
@@ -214,36 +208,32 @@ public class DecisionTreeClassifier {
 //            return makePrediction(x, tree.getRight());
 //        }
 //    }
+//    private float[] calculateThValues(float[] featureValues) {
+//        float[] possibleThresholds = new float[7];
+//        // Select 3 items randomly from the selected items
+//        if (featureValues.length >= 2 && featureValues.length <= 3) {
+//            possibleThresholds[0] = featureValues[0];
+//            possibleThresholds[1] = featureValues[1];
+//        } else if (featureValues.length >= 4 && featureValues.length <= 5) {
+//            possibleThresholds[0] = featureValues[0];
+//            possibleThresholds[1] = featureValues[2];
+//            possibleThresholds[2] = featureValues[4];
+//        } else if (featureValues.length >= 6) {
+//            possibleThresholds[0] = featureValues[0];
+//            possibleThresholds[1] = featureValues[2];
+//            possibleThresholds[2] = featureValues[4];
+//            possibleThresholds[3] = featureValues[5];
+//        }
+//        return possibleThresholds;
+//    }
+//
+//    private void nodeAdder(float[] dataset, Node parent) {
+//        if (dataset != null && dataset.length > 0) {
+//            Node childNode = new Node(dataset);
+//            parent.addChild(childNode);
+//        }
+//    }
 
-    //calculate possible threshold
-    private float[] calculateThValues(float[] featureValues) {
-        float[] possibleThresholds = new float[7];
-        // Select 3 items randomly from the selected items
-        if (featureValues.length >= 2 && featureValues.length <= 3) {
-            possibleThresholds[0] = featureValues[0];
-            possibleThresholds[1] = featureValues[1];
-        } else if (featureValues.length >= 4 && featureValues.length <= 5) {
-            possibleThresholds[0] = featureValues[0];
-            possibleThresholds[1] = featureValues[2];
-            possibleThresholds[2] = featureValues[4];
-        } else if (featureValues.length >= 6) {
-            possibleThresholds[0] = featureValues[0];
-            possibleThresholds[1] = featureValues[2];
-            possibleThresholds[2] = featureValues[4];
-            possibleThresholds[3] = featureValues[5];
-        }
-        return possibleThresholds;
-    }
-
-    //adds a dataset values to a child node and then add it to a parent node
-    private void nodeAdder(float[] dataset, Node parent) {
-        if (dataset != null && dataset.length > 0) {
-            Node childNode = new Node(dataset);
-            parent.addChild(childNode);
-        }
-    }
-
-    //splits 2-D dataset array and pass a List of 2-D arrays of split data's
     public List<float[][]> split(float[][] dataset, float[] label, int featureIndex, float[] thresholdValues, int numFeatures) {
         List<float[]> datasetList1 = new ArrayList<>();
         List<float[]> datasetList2 = new ArrayList<>();
@@ -311,31 +301,28 @@ public class DecisionTreeClassifier {
 //        return new float[0];
 //    }
 
-    public float[] calculateLeafValue(float[] Y) {
-        Map<Float, Integer> counts = new HashMap<>();
-        for (float value : Y) {
-            counts.put(value, counts.getOrDefault(value, 0) + 1);
-        }
-
-        float maxCount = Float.NEGATIVE_INFINITY;
-        float leafValue = 0;
-
-        for (Map.Entry<Float, Integer> entry : counts.entrySet()) {
-            if (entry.getValue() > maxCount) {
-                maxCount = entry.getValue();
-                leafValue = entry.getKey();
-            }
-        }
-
-        return new float[]{leafValue};
-    }
-
-    public float accuracyScore(float[] correctLabels, float[] predictedLabels) {
-        int correctPredicted = 0;
-        for (int i = 0; i < correctLabels.length; i++) {
-            if (correctLabels[i] == predictedLabels[i])
-                correctPredicted++;
-        }
-        return (float) ((float) correctPredicted / correctLabels.length * 100.0);
-    }
+//    public float[] calculateLeafValue(float[] Y) {
+//        Map<Float, Integer> counts = new HashMap<>();
+//        for (float value : Y) {
+//            counts.put(value, counts.getOrDefault(value, 0) + 1);
+//        }
+//        float maxCount = Float.NEGATIVE_INFINITY;
+//        float leafValue = 0;
+//        for (Map.Entry<Float, Integer> entry : counts.entrySet()) {
+//            if (entry.getValue() > maxCount) {
+//                maxCount = entry.getValue();
+//                leafValue = entry.getKey();
+//            }
+//        }
+//        return new float[]{leafValue};
+//    }
+//
+//    public float accuracyScore(float[] correctLabels, float[] predictedLabels) {
+//        int correctPredicted = 0;
+//        for (int i = 0; i < correctLabels.length; i++) {
+//            if (correctLabels[i] == predictedLabels[i])
+//                correctPredicted++;
+//        }
+//        return (float) ((float) correctPredicted / correctLabels.length * 100.0);
+//    }
 }

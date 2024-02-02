@@ -2,41 +2,41 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class Main {
+    public static int numberOfLabels = 0;
+
     public static void main(String[] args) {
-		String[] colNames = {"HighBP", "HighChol", "CholCheck", "Smoker", "Stroke",
-				"HeartDiseaseorAttack", "PhysActivity", "Fruits", "Veggies",
-				"HvyAlcoholConsump", "AnyHealthcare", "NoDocbcCost", "GenHlth",
-				"DiffWalk", "Sex", "Education", "Income"};
+        String[] featureNames = {"HighBP", "HighChol", "CholCheck", "Smoker", "Stroke",
+                "HeartDiseaseorAttack", "PhysActivity", "Fruits", "Veggies",
+                "HvyAlcoholConsump", "AnyHealthcare", "NoDocbcCost", "GenHlth",
+                "DiffWalk", "Sex", "Education", "Income"};
 
-		float[][] feature = readCSV("Data/feature_train.csv");
-		float[][] label = readCSV("Data/label_train.csv");
+        float[][] feature = readCSV("Data/feature_train.csv");
+        float[][] label = readCSV("Data/label_train.csv");
 
-		float [] labelCopy = new float[label.length];
-		for (int i = 0; i < label.length; i++) {
-			labelCopy[i] = label[i][0];
-		}
+        numberOfLabels /= 2;
 
-		Tree tree = new Tree(0 , 0);
+        float[][] featureCopy = new float[15][17];
+        for (int i = 0; i < 15; i++) {
+            System.arraycopy(feature[i], 0, featureCopy[i], 0, 17);
+        }
 
-		float[][] featureCopy = new float[15][17];
-		for (int i = 0; i < 15; i++) {
-			for (int j = 0; j < 17; j++) {
-				featureCopy[i][j] = feature[i][j];
-                    System.out.print(featureCopy[i][j] + " ");
-			}
-		}
+        float[] labelCopy = new float[numberOfLabels];
+        for (int i = 0; i < numberOfLabels; i++) {
+            labelCopy[i] = label[i][0];
+        }
 
-		ArrayList<Integer> featureArr = new ArrayList<>();
-		for (int i = 0; i < 17; i++) {
-			featureArr.add(i , i);
-		}
-		DecisionTreeClassifier decisionTree = new DecisionTreeClassifier(tree , featureCopy , labelCopy);
-		Node root = decisionTree.buildTree(featureCopy, 0 , 6 , featureArr);
-		System.out.println("Decision tree Generated");
+        Tree tree = new Tree(0, 0);
+
+        ArrayList<Integer> featureArr = new ArrayList<>();
+        for (int i = 0; i < 17; i++) {
+            featureArr.add(i, i);
+        }
+        DecisionTreeClassifier decisionTree = new DecisionTreeClassifier(tree, featureCopy, labelCopy);
+        Node root = decisionTree.buildTree(featureCopy, 0, 6, featureArr);
+        System.out.println("Decision tree Generated");
 
 //		// Train-Test split
 //		float[][] X = new float[feature.length][feature[0].length - 1];
@@ -77,28 +77,29 @@ public class Main {
 //        System.out.println("information gain of " + Arrays.toString(Parent.getValue()) + " Node is : " + Parent.getInfoGain());
 //        Test_tree.informationGain(child1);
 //        System.out.println("information gain of " + Arrays.toString(child1.getValue()) + " Node is : " + child1.getInfoGain());
-	}
+    }
 
-	public static float[][] readCSV(String fileAddress) {
-		List<float[]> dataList = new ArrayList<>();
-		try (BufferedReader bufferedReader = new BufferedReader(new FileReader(fileAddress))) {
-			String line;
-			bufferedReader.readLine();
-			while ((line = bufferedReader.readLine()) != null) {
-				String[] values = line.split(",");
-				float[] row = new float[values.length];
-				for (int i = 0; i < values.length; i++) {
-					row[i] = Float.parseFloat(values[i]);
-				}
-				dataList.add(row);
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		float[][] data = new float[dataList.size()][];
-		for (int i = 0; i < dataList.size(); i++) {
-			data[i] = dataList.get(i);
-		}
-		return data;
-	}
+    public static float[][] readCSV(String fileAddress) {
+        List<float[]> dataList = new ArrayList<>();
+        try (BufferedReader bufferedReader = new BufferedReader(new FileReader(fileAddress))) {
+            String line;
+            bufferedReader.readLine();
+            while ((line = bufferedReader.readLine()) != null) {
+                String[] values = line.split(",");
+                float[] row = new float[values.length];
+                for (int i = 0; i < values.length; i++) {
+                    row[i] = Float.parseFloat(values[i]);
+                }
+                dataList.add(row);
+                numberOfLabels++;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        float[][] data = new float[dataList.size()][];
+        for (int i = 0; i < dataList.size(); i++) {
+            data[i] = dataList.get(i);
+        }
+        return data;
+    }
 }
