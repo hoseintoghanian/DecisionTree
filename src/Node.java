@@ -3,12 +3,16 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Node {
-    public int featureIndex;
-    public float[] threshold;
-    public List<Node> childrenNodes = null;
-    public float infoGain;
-    public float[] value;
-    public List<float[]> childrenList = null;
+
+    private int featureIndex;
+    private float[] threshold;
+    private List<Node> childrenNodes;
+    private float infoGain;
+    private float[] value;
+    private float[][] value2;
+    private List<float[]> childrenList = null;
+    Boolean isLeaf;
+
 
     public Node(float[] value) {
         this.value = value;
@@ -18,23 +22,13 @@ public class Node {
         this.setValue(value);
     }
 
-    public Node(float[] threshold, float infoGain, float[] value) {
-        this.threshold = threshold;
-        this.infoGain = infoGain;
-        this.value = value;
+    public Node(float[] value, Boolean isLeaf) {
         this.childrenNodes = new ArrayList<>();
-        this.childrenList = new ArrayList<>();
-        this.genChildren(this.childrenNodes);
-        this.setValue(value);
+        this.value = value;
+        this.isLeaf = isLeaf;
     }
 
-    public Node(float[] threshold, float infoGain, int featureIndex) {
-        this.featureIndex = featureIndex;
-        this.threshold = threshold;
-        this.infoGain = infoGain;
-    }
-
-    public void setValue(float[] value) {
+    public void setValue ( float[] value){
         System.arraycopy(value, 0, this.value, 0, value.length);
     }
 
@@ -66,6 +60,36 @@ public class Node {
 
     public List<Node> getChildrenNodes() {
         return childrenNodes;
+    }
+
+    public void setChildrenNodes(List<Node> childrenNodes) {
+        this.childrenNodes = childrenNodes;
+    }
+
+    public Node getChildrenByIndex(int index) {
+        int i = 0;
+        for (Node child : this.childrenNodes) {
+            if (i == index)
+                return child;
+            i++;
+        }
+        return null;
+    }
+
+    public List<float[]> getChildrenList() {
+        return childrenList;
+    }
+
+    public void setChildrenList(List<float[]> childrenList) {
+        this.childrenList = childrenList;
+    }
+
+    public Boolean getLeaf() {
+        return isLeaf;
+    }
+
+    public void setLeaf(Boolean leaf) {
+        isLeaf = leaf;
     }
 
     @Override

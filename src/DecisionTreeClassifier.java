@@ -1,348 +1,341 @@
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class DecisionTreeClassifier {
+    public Tree tree;
+    public int minSamplesSplit;
+    public int depth;
+    public float[][] feature;
+    public float[] label;
 
-    private Tree tree;
-    private int minSamplesSplit;
-    private int maxDepth;
-    private float[][] data;
-    private float[] labels;
-
-    public DecisionTreeClassifier(Tree tree, float[][] data, float[] labels) {
+    public DecisionTreeClassifier(Tree tree, float[][] feature, float[] label) {
         this.tree = tree;
-        this.data = data;
-        this.labels = labels;
+        this.feature = feature;
+        this.label = label;
     }
 
-////    public double[] predict(double[][] X) {
-////        double[] predictions = new double[X.length];
-////        for (int i = 0; i < X.length; i++) {
-////            predictions[i] = makePrediction(X[i], tree.root);
-////        }
-////        return predictions;
-////    }
-////
-////    public double makePrediction(double[] x, Tree tree) {
-////        if (tree.getValue() != null) {
-////            return tree.getValue();
-////        }
-////
-////        double featureVal = x[tree.getFeatureIndex()];
-////        if (featureVal <= tree.getThreshold()) {
-////            return makePrediction(x, tree.getLeft());
-////        } else {
-////            return makePrediction(x, tree.getRight());
-////        }
-////    }
-//
-//    //building tree based on calculating iGain and Entropy for each split
-//    public Node buildTree(float[][] dataset, int currDepth, int minSamplesSplit, int maxDepth) {
-////        split(dataset, 0, 0, new double[]{0, 1});
-//
-//        // Split the dataset
-//        Map<String, Object> bestSplit = getBestSplit(dataset, dataset.length, dataset[0].length);
-//        // Extract information from the best split
-//        int featureIndex = (int) bestSplit.get("feature_index");
-//        float[] thresholds = (float[]) bestSplit.get("threshold");
-//        float[][] dataset1 = (float[][]) bestSplit.get("dataset1");
-//        float[][] dataset2 = (float[][]) bestSplit.get("dataset2");
-//        float[][] dataset3 = (float[][]) bestSplit.get("dataset3");
-//        float[][] dataset4 = (float[][]) bestSplit.get("dataset4");
-//        float[][] dataset5 = (float[][]) bestSplit.get("dataset5");
-//        float[][] dataset6 = (float[][]) bestSplit.get("dataset6");
-//        float[][] dataset7 = (float[][]) bestSplit.get("dataset7");
-//        float infoGain = (float) bestSplit.get("info_gain");
-//
-//        // Check conditions for building subtrees
-//        if (infoGain > 0 && currDepth <= maxDepth) {
-//            Node SubTree1 = buildTree(dataset1 , currDepth + 1 , minSamplesSplit , maxDepth);
-//            Node SubTree2 = buildTree(dataset2 , currDepth + 1 , minSamplesSplit , maxDepth);
-//            Node SubTree3 = buildTree(dataset3 , currDepth + 1 , minSamplesSplit , maxDepth);
-//            Node SubTree4 = buildTree(dataset4 , currDepth + 1 , minSamplesSplit , maxDepth);
-//            Node SubTree5 = buildTree(dataset5 , currDepth + 1 , minSamplesSplit , maxDepth);
-//            Node SubTree6 = buildTree(dataset6 , currDepth + 1 , minSamplesSplit , maxDepth);
-//            Node SubTree7 = buildTree(dataset7 , currDepth + 1 , minSamplesSplit , maxDepth);
-//
-////            Node leftSubtree = buildTree(dataset2, currDepth + 1, minSamplesSplit, maxDepth);
-////            Node rightSubtree = buildTree(dataset3, currDepth + 1, minSamplesSplit, maxDepth);
-//
-//            // Return a non-leaf node
-////            return new Node(thresholds, infoGain, featureIndex);
+//    public float[] predict(float[][] X) {
+//        float[] predictions = new float[X.length];
+//        for (int i = 0; i < X.length; i++) {
+//            predictions[i] = makePrediction(X[i], tree.root);
+//        }
+//        return predictions;
+//    }
+
+//    public float makePrediction(float[] x, Tree tree) {
+//        if (tree.getValue() != null)
+//            return tree.getValue();
+//        float featureVal = x[tree.getFeatureIndex()];
+//        if (featureVal <= tree.getThreshold()) {
+//            return makePrediction(x, tree.getLeft());
 //        } else {
-//            // Return a leaf node
-//            float[] X  = Arrays.copyOf(dataset[0] , dataset[0].length);
-//            float[] leafValue = calculateLeafValue(X);
-//            return new Node(leafValue);
+//            return makePrediction(x, tree.getRight());
 //        }
-//
-////        double[][] X = new double[dataset.length][dataset[0].length - 1];
-////        double[] Y = new double[dataset.length];
-////        for (int i = 0; i < dataset.length; i++) {
-////            System.arraycopy(dataset[i], 0, X[i], 0, dataset[i].length - 1);
-////            Y[i] = dataset[i][dataset[i].length - 1];
-////        }
-////        int numSamples = X.length;
-////        int numFeatures = X[0].length + 1;
-////        if (numSamples >= minSamplesSplit && currDepth <= maxDepth) {
-////            Map<String, Object> bestSplit = getBestSplit(dataset, numSamples, numFeatures);
-////
-////            if ((double) bestSplit.get("info_gain") > 0) {
-////                Node leftSubtree = buildTree((double[][]) bestSplit.get("dataset_left"), currDepth + 1,
-////                        minSamplesSplit, maxDepth);
-////                Node rightSubtree = buildTree((double[][]) bestSplit.get("dataset_right"), currDepth + 1,
-////                        minSamplesSplit, maxDepth);
-////
-////                return new Node((int) bestSplit.get("threshold"), (double) bestSplit.get("info_gain"), (int) bestSplit.get("feature_index"));
-////            }
-////        }
-//
-////        double[] leafValue = calculateLeafValue(Y);
-//        return new Node((float[]) bestSplit.get("value"), (float) bestSplit.get("info_gain"), (int) bestSplit.get("threshold"));
 //    }
+
+    public Node buildTree(float[][] dataset, int currDepth, int maxDepth, ArrayList featureIndexArray) {
+        // Split the dataset
+        Map<String, Object> bestSplit = getBestSplit(dataset, dataset.length, dataset[0].length, label);
+        // Extract information from the best split
+        int featureIndex = (int) bestSplit.get("feature_index");
+        featureIndexArray.remove(featureIndex);
+        float infoGain = (float) bestSplit.get("info_gain");
+        Node parent = (Node) bestSplit.get("parent_node");
+        float[][] dataset1 = new float[dataset.length][dataset[0].length];
+        if (bestSplit.size() > 0)
+            dataset1 = (float[][]) bestSplit.get("child_dataset1");
+        float[][] dataset2 = new float[dataset.length][dataset[0].length];
+        if (bestSplit.size() > 1)
+            dataset2 = (float[][]) bestSplit.get("child_dataset2");
+        float[][] dataset3 = new float[dataset.length][dataset[0].length];
+        if (bestSplit.size() > 2)
+            dataset3 = (float[][]) bestSplit.get("child_dataset3");
+        float[][] dataset4 = new float[dataset.length][dataset[0].length];
+        if (bestSplit.size() > 3)
+            dataset4 = (float[][]) bestSplit.get("child_dataset4");
+        float[][] dataset5 = new float[dataset.length][dataset[0].length];
+        if (bestSplit.size() > 4)
+            dataset5 = (float[][]) bestSplit.get("child_dataset5");
+        // Check conditions for building subtrees
+        if (infoGain > 0 && currDepth <= maxDepth) {
+            for (int i = 0; i < parent.getChildrenNodes().size(); i++) {
+                Node subTree;
+                if (!parent.getChildrenByIndex(i).getLeaf())
+                    subTree = buildTree((float[][]) bestSplit.get(String.format("child_dataset%d", i + 1)), currDepth + 1, maxDepth, featureIndexArray);
+            }
+            return new Node(parent.getValue(), false);
+        }
+        return new Node((float[]) bestSplit.get("value"), true);
+//        float[][] X = new float[dataset.length][dataset[0].length - 1];
+//        float[] Y = new float[dataset.length];
+//        for (int i = 0; i < dataset.length; i++) {
+//            System.arraycopy(dataset[i], 0, X[i], 0, dataset[i].length - 1);
+//            Y[i] = dataset[i][dataset[i].length - 1];
+//        }
+//        int numSamples = X.length;
+//        int numFeatures = X[0].length + 1;
+//        if (numSamples >= minSamplesSplit && currDepth <= maxDepth) {
+//            Map<String, Object> bestSplit = getBestSplit(dataset, numSamples, numFeatures);
 //
-//    //calculates Possible threshold and find the best split for a given dataset
-//    public Map<String, Object> getBestSplit(float[][] dataset, int numSamples, int numFeatures) {
-//        Map<String, Object> bestSplit = new HashMap<>();
-//        float maxInfoGain = Float.NEGATIVE_INFINITY;
+//            if ((float) bestSplit.get("info_gain") > 0) {
+//                Node leftSubtree = buildTree((float[][]) bestSplit.get("dataset_left"), currDepth + 1,
+//                        minSamplesSplit, maxDepth);
+//                Node rightSubtree = buildTree((float[][]) bestSplit.get("dataset_right"), currDepth + 1,
+//                        minSamplesSplit, maxDepth);
 //
-//        for (int featureIndex = 0; featureIndex < numFeatures; featureIndex++) {
-//            float[] featureValues = new float[numSamples];
-//            for (int i = 0; i < numSamples; i++) {
-//                featureValues[i] = dataset[i][featureIndex];
-//            }
-//
-//            float[] possibleThresholds = Arrays.stream(featureValues).distinct().toArray();
-//
-////            for (double threshold : possibleThresholds) {
-//            List<float[][]> splitResult = split(dataset, featureIndex, possibleThresholds);
-////                double[][] datasetLeft = splitResult.get(0);
-////                double[][] datasetRight = splitResult.get(1);
-//
-//            float[][] dataset1 = splitResult.get(1);
-//            float[][] dataset2 = splitResult.get(2);
-//            float[][] dataset3 = splitResult.get(3);
-//            float[][] dataset4 = splitResult.get(4);
-//            float[][] dataset5 = splitResult.get(5);
-//            float[][] dataset6 = splitResult.get(6);
-//            float[][] dataset7 = splitResult.get(7);
-//
-//            if (splitResult.get(1).length > 0) {
-////                double[] y = Arrays.copyOfRange(dataset[0], dataset[0].length - 1, numSamples);
-////                Node parent = new Node(y);
-//                Node parent  = new Node(Arrays.copyOf(splitResult.get(1)[0] , splitResult.get(1)[0].length));
-//
-//                nodeAdder(splitResult.get(2), parent);
-//                nodeAdder(splitResult.get(3), parent);
-//                nodeAdder(splitResult.get(4), parent);
-//                nodeAdder(splitResult.get(5), parent);
-//                nodeAdder(splitResult.get(6), parent);
-//                nodeAdder(splitResult.get(7), parent);
-//                float currInfoGain = tree.informationGain(parent);
-//
-//                if (currInfoGain > maxInfoGain) {
-//                    bestSplit.put("feature_index", featureIndex);
-//                    bestSplit.put("threshold", possibleThresholds);
-//                    bestSplit.put("dataset1", dataset1);
-//                    if (dataset2.length > 0)
-//                        bestSplit.put("dataset2", dataset2);
-//                    else
-//                        bestSplit.put("dataset2" , null);
-//                    if (dataset3.length > 0)
-//                        bestSplit.put("dataset3", dataset3);
-//                    else
-//                        bestSplit.put("dataset3" , null);
-//                    if (dataset4.length > 0)
-//                        bestSplit.put("dataset4", dataset4);
-//                    else
-//                        bestSplit.put("dataset4" , null);
-//                    if (dataset5.length > 0)
-//                        bestSplit.put("dataset5", dataset5);
-//                    else
-//                        bestSplit.put("dataset5" , null);
-//                    if (dataset6.length > 0)
-//                        bestSplit.put("dataset6", dataset6);
-//                    else
-//                        bestSplit.put("dataset6" , null);
-//                    if (dataset7.length > 0)
-//                        bestSplit.put("dataset7", dataset7);
-//                    else
-//                        bestSplit.put("dataset7" , null);
-//                    bestSplit.put("info_gain", currInfoGain);
-//                    maxInfoGain = currInfoGain;
-//                }
-////                if (datasetLeft.length > 0 && datasetRight.length > 0) {
-////                    double[] y = Arrays.copyOfRange(dataset[0], dataset[0].length - 1, numSamples);
-////                    double[] leftY = Arrays.copyOfRange(datasetLeft[0], datasetLeft[0].length - 1, datasetLeft.length);
-////                    double[] rightY = Arrays.copyOfRange(datasetRight[0], datasetRight[0].length - 1, datasetRight.length);
-////
-////                    Node parent = new Node(y);
-////                    Node leftNode = new Node(leftY);
-////                    Node rightNode = new Node(rightY);
-////                    parent.addChild(leftNode);
-////                    parent.addChild(rightNode);
-////                    double currInfoGain = tree.informationGain(parent);
-////
-////                    if (currInfoGain > maxInfoGain) {
-////                        bestSplit.put("feature_index", featureIndex);
-////                        bestSplit.put("threshold", threshold);
-////                        bestSplit.put("dataset_left", datasetLeft);
-////                        bestSplit.put("dataset_right", datasetRight);
-////                        bestSplit.put("info_gain", currInfoGain);
-////                        maxInfoGain = currInfoGain;
-////                    }
-////                }
+//                return new Node((int) bestSplit.get("threshold"), (float) bestSplit.get("info_gain"), (int) bestSplit.get("feature_index"));
 //            }
 //        }
-//
-//        return bestSplit;
-//    }
-//
-//    //adds a dataset values to a child node and then add it to a parent node
-//    private Boolean nodeAdder(double[][] dataset, Node parent) {
-//        if (dataset != null && dataset.length > 0) {
-//            float[] childNodeArray = Arrays.copyOfRange(dataset[0], dataset[0].length - 1, dataset.length);
-//            Node childNode = new Node(childNodeArray);
-//            parent.addChild(childNode);
-//            return true;
-//        }
-//        return false;
-//    }
-//
-//    //splits 2-D dataset array and pass a List of 2-D arrays of split data's
-//    public List<float[][]> split(float[][] dataset, int featureIndex, float[] thresholdValues) {
-////        List<double[]> datasetLeftList = new ArrayList<>();
-////        List<double[]> datasetRightList = new ArrayList<>();
-//
-//        List<float[]> datasetList1 = new ArrayList<>();
-//        List<float[]> datasetList2 = new ArrayList<>();
-//        List<float[]> datasetList3 = new ArrayList<>();
-//        List<float[]> datasetList4 = new ArrayList<>();
-//        List<float[]> datasetList5 = new ArrayList<>();
-//        List<float[]> datasetList6 = new ArrayList<>();
-//        List<float[]> datasetList7 = new ArrayList<>();
-//
-//        for (float[] row : dataset) {
-////            if (row[featureIndex] <= threshold) {
-////                datasetLeftList.add(row);
-////            } else {
-////                datasetRightList.add(row);
-////            }
-//
-//            if (row[featureIndex] <= thresholdValues[0])
-//                datasetList1.add(row);
-//            else if (row[featureIndex] > thresholdValues[0] && row[featureIndex] <= thresholdValues[1])
-//                datasetList2.add(row);
-//            else if (row[featureIndex] > thresholdValues[1] && row[featureIndex] <= thresholdValues[2])
-//                datasetList3.add(row);
-//            else if (row[featureIndex] > thresholdValues[2] && row[featureIndex] <= thresholdValues[3])
-//                datasetList4.add(row);
-//            else if (row[featureIndex] > thresholdValues[3] && row[featureIndex] <= thresholdValues[4])
-//                datasetList5.add(row);
-//            else if (row[featureIndex] > thresholdValues[4] && row[featureIndex] <= thresholdValues[5])
-//                datasetList6.add(row);
-//            else if (row[featureIndex] > thresholdValues[5] && row[featureIndex] <= thresholdValues[6])
-//                datasetList7.add(row);
-//        }
-//
-////        double[][] datasetLeft = new double[datasetLeftList.size()][];
-////        double[][] datasetRight = new double[datasetRightList.size()][];
-//        //test for correct spliting dataset
-////        System.out.println("datasetList2 values = ");
-////        for (int j = 0; j < datasetList2.size(); j++) {
-////            for (int i = 0; i < 17; i++) {
-////                System.out.print(datasetList2.get(j)[i] + " ");
-////            }
-////            System.out.println();
-////        }
-//        List<float[][]> result = new ArrayList<>();
-//
-//        float[][] dataset1 = new float[datasetList1.size()][];
-//        result.add(0, dataset1);
-//        float[][] dataset2 = new float[datasetList2.size()][];
-//        result.add(1, dataset2);
-//        float[][] dataset3;
-//        if (!datasetList3.isEmpty()) {
-//            dataset3 = new float[datasetList3.size()][];
-//            result.add(2, dataset3);
-//        }
-//        float[][] dataset4;
-//        if (!datasetList4.isEmpty()) {
-//            dataset4 = new float[datasetList4.size()][];
-//            result.add(3, dataset4);
-//        }
-//        float[][] dataset5;
-//        if (!datasetList5.isEmpty()) {
-//            dataset5 = new float[datasetList5.size()][];
-//            result.add(4, dataset5);
-//        }
-//        float[][] dataset6;
-//        if (!datasetList6.isEmpty()) {
-//            dataset6 = new float[datasetList6.size()][];
-//            result.add(5, dataset6);
-//        }
-//        float[][] dataset7;
-//        if (!datasetList7.isEmpty()) {
-//            dataset7 = new float[datasetList7.size()][];
-//            result.add(6, dataset7);
-//        }
-////        result.add(0, datasetLeft);
-////        result.add(1, datasetRight);
-//        return result;
-//    }
-//
-////    public void printTree(Node tree, String indent) {
-////        if (tree.getValue() != null) {
-////            System.out.println(tree.getValue());
-////        } else {
-////            System.out.println("X_" + tree.getFeatureIndex() + " <= " + tree.getThreshold() + " ? " + tree.getInfoGain());
-////            System.out.print(indent + "left: ");
-////            printTree(tree.getLeft(), indent + "  ");
-////            System.out.print(indent + "right: ");
-////            printTree(tree.getRight(), indent + "  ");
-////        }
-////    }
-//
-////    public void fit(double[][] X, double[] Y) {
-////        double[][] dataset = new double[X.length][X[0].length + 1];
-////        for (int i = 0; i < X.length; i++) {
-////            System.arraycopy(X[i], 0, dataset[i], 0, X[i].length);
-////            dataset[i][X[i].length] = Y[i];
-////        }
-////
-////        root = buildTree(dataset, 0);
-////    }
-//
-//    //    public float[] predictAll(float[][] data, int depth) {
-////        return new float[0];
-////    }
-//    //Not Implemented Yet .
-//    public float[] calculateLeafValue(float[] Y) {
-//        Map<Float, Integer> counts = new HashMap<>();
-//        for (float value : Y) {
-//            counts.put(value, counts.getOrDefault(value, 0) + 1);
-//        }
-//
-//        float maxCount = Float.NEGATIVE_INFINITY;
-//        float leafValue = 0;
-//
-//        for (Map.Entry<Float, Integer> entry : counts.entrySet()) {
-//            if (entry.getValue() > maxCount) {
-//                maxCount = entry.getValue();
-//                leafValue = entry.getKey();
+//        float[] leafValue = calculateLeafValue(Y);
+    }
+
+    //check for leaf or decision Node
+    private boolean checkLeaf(float[][] splitResult, int featureIndex) {
+        float equals = splitResult[0][17];
+        for (int j = 0; j < splitResult.length; j++) {
+            if (splitResult[j][17] != equals)
+                return false;
+        }
+        return true;
+    }
+
+    //calculates Possible threshold and find the best split for a given dataset
+    public Map<String, Object> getBestSplit(float[][] dataset, int numSamples, int numFeatures, float[] label) {
+        Map<String, Object> bestSplit = new HashMap<>();
+        float maxInfoGain = Float.NEGATIVE_INFINITY;
+
+        for (int featureIndex = 0; featureIndex < numFeatures; featureIndex++) {
+            float[] featureValues = new float[numSamples];
+            for (int i = 0; i < dataset.length - 1; i++) {
+                featureValues[i] = dataset[i][featureIndex];
+            }
+
+//            float[] uniqueFeatureValues = new float[17];
+            // Adding unique elements to uniqueFeatureValues
+//            for (int i = 0; i < featureValues.length; i++) {
+//                uniqueFeatureValues = Arrays.stream(featureValues).distinct().toArray();
 //            }
+            // Sort the uniqueFeatureValues array
+//            Arrays.sort(uniqueFeatureValues);
+//            float[] possibleThresholds = calculateThValues(uniqueFeatureValues);
+            float[] parentValues = new float[numSamples];
+//            boolean flag = false;
+            for (int i = 0; i < numSamples; i++) {
+                parentValues[i] = dataset[i][featureIndex];
+//                if (parentValues[i] != parentValues[0])
+//                    flag = true;
+            }
+            List<float[][]> splitResult = split(dataset, label, featureIndex, featureValues, numFeatures);
+
+            //add each child node to its parent
+            Node parent = new Node(parentValues, false);
+            buildChildren(splitResult, parent, featureIndex, numSamples);
+            float currInfoGain = maxInfoGain;
+//            System.out.println("flag = " + flag);
+//            if (flag)
+            currInfoGain = tree.informationGain(parent);
+            System.out.println("currInfoGain = " + currInfoGain);
+            System.out.println("featureIndex = " + featureIndex);
+            if (currInfoGain > maxInfoGain) {
+                bestSplit.put("feature_index", featureIndex);
+                bestSplit.put("parent_node", parent);
+                bestSplit.put("child_dataset1", splitResult.get(0));
+                if (splitResult.size() > 1)
+                    bestSplit.put("child_dataset2", splitResult.get(1));
+                if (splitResult.size() > 2)
+                    bestSplit.put("child_dataset3", splitResult.get(2));
+                if (splitResult.size() > 3)
+                    bestSplit.put("child_dataset4", splitResult.get(3));
+                if (splitResult.size() > 4)
+                    bestSplit.put("child_dataset5", splitResult.get(4));
+                if (splitResult.size() > 5)
+                    bestSplit.put("child_dataset6", splitResult.get(5));
+                bestSplit.put("info_gain", currInfoGain);
+                maxInfoGain = currInfoGain;
+            }
+        }
+        return bestSplit;
+    }
+
+    //gets split result and add them to parent Node
+    private void buildChildren(List<float[][]> splitResult, Node parent, int featureIndex, int numSamples) {
+        if (!splitResult.isEmpty()) {
+            for (int i = 0; i < splitResult.size(); i++) {
+                Node childNode;
+                if (splitResult.get(i) != null) {
+                    float[] childValues = new float[numSamples];
+                    for (int j = 0; j < splitResult.get(i).length; j++) {
+                        childValues[j] = splitResult.get(i)[j][featureIndex];
+                    }
+                    if (checkLeaf(splitResult.get(i), featureIndex)) {
+                        //childNode is a leaf Node
+                        childNode = new Node(childValues, true);
+                        System.out.println("Gorgali leaf");
+                    } else {
+                        //childNode is a Decision Node
+                        childNode = new Node(childValues, false);
+                        System.out.println("Gorgali Decision Node");
+                    }
+                    parent.addChild(childNode);
+                }
+            }
+        }
+    }
+
+//    public void fit(float[][] X, float[] Y) {
+//        float[][] dataset = new float[X.length][X[0].length + 1];
+//        for (int i = 0; i < X.length; i++) {
+//            System.arraycopy(X[i], 0, dataset[i], 0, X[i].length);
+//            dataset[i][X[i].length] = Y[i];
 //        }
 //
-//        return new float[]{leafValue};
+//        root = buildTree(dataset, 0);
+//    }
+
+//    public float[] predict(float[][] X) {
+//        float[] predictions = new float[X.length];
+//        for (int i = 0; i < X.length; i++) {
+//            predictions[i] = makePrediction(X[i], root);
+//        }
+//        return predictions;
 //    }
 //
-//    // Not Implemented Yet
-//    // compare correctLabels and predictedLabels and calculate the accuracy of algorithm
-//    public float accuracyScore(float[] correctLabels, float[] predictedLabels) {
-//        int correctPredicted = 0;
-//        for (int i = 0; i < correctLabels.length; i++) {
-//            if (correctLabels[i] == predictedLabels[i])
-//                correctPredicted++;
+//    public float makePrediction(float[] x, Node tree) {
+//        if (tree.getValue() != null) {
+//            return tree.getValue();
 //        }
-//        return (float) ((float) correctPredicted / correctLabels.length * 100.0);
+//
+//        float featureVal = x[tree.getFeatureIndex()];
+//        if (featureVal <= tree.getThreshold()) {
+//            return makePrediction(x, tree.getLeft());
+//        } else {
+//            return makePrediction(x, tree.getRight());
+//        }
 //    }
+
+    //calculate possible threshold
+    private float[] calculateThValues(float[] featureValues) {
+        float[] possibleThresholds = new float[7];
+        // Select 3 items randomly from the selected items
+        if (featureValues.length >= 2 && featureValues.length <= 3) {
+            possibleThresholds[0] = featureValues[0];
+            possibleThresholds[1] = featureValues[1];
+        } else if (featureValues.length >= 4 && featureValues.length <= 5) {
+            possibleThresholds[0] = featureValues[0];
+            possibleThresholds[1] = featureValues[2];
+            possibleThresholds[2] = featureValues[4];
+        } else if (featureValues.length >= 6) {
+            possibleThresholds[0] = featureValues[0];
+            possibleThresholds[1] = featureValues[2];
+            possibleThresholds[2] = featureValues[4];
+            possibleThresholds[3] = featureValues[5];
+        }
+        return possibleThresholds;
+    }
+
+    //adds a dataset values to a child node and then add it to a parent node
+    private void nodeAdder(float[] dataset, Node parent) {
+        if (dataset != null && dataset.length > 0) {
+            Node childNode = new Node(dataset);
+            parent.addChild(childNode);
+        }
+    }
+
+    //splits 2-D dataset array and pass a List of 2-D arrays of split data's
+    public List<float[][]> split(float[][] dataset, float[] label, int featureIndex, float[] thresholdValues, int numFeatures) {
+        List<float[]> datasetList1 = new ArrayList<>();
+        List<float[]> datasetList2 = new ArrayList<>();
+        List<float[]> datasetList3 = new ArrayList<>();
+        List<float[]> datasetList4 = new ArrayList<>();
+        for (int i = 0; i < dataset.length; i++) {
+            float[] temp = new float[numFeatures + 1];
+            System.arraycopy(dataset[i], 0, temp, 0, numFeatures);
+            temp[numFeatures] = label[i];
+            if (dataset[i][featureIndex] <= thresholdValues[0]) {
+                datasetList1.add(temp);
+            } else if (dataset[i][featureIndex] > thresholdValues[0] && dataset[i][featureIndex] <= thresholdValues[1]) {
+                datasetList2.add(temp);
+            } else if (dataset[i][featureIndex] > thresholdValues[1] && dataset[i][featureIndex] <= thresholdValues[2]) {
+                datasetList3.add(temp);
+            } else if (dataset[i][featureIndex] > thresholdValues[2] && dataset[i][featureIndex] <= thresholdValues[3]) {
+                datasetList4.add(temp);
+            }
+        }
+        List<float[][]> datasetListResult = new ArrayList<>();
+        pourList(datasetListResult, datasetList1, numFeatures);
+        pourList(datasetListResult, datasetList2, numFeatures);
+        pourList(datasetListResult, datasetList3, numFeatures);
+        pourList(datasetListResult, datasetList4, numFeatures);
+        return datasetListResult;
+    }
+
+    private void pourList(List<float[][]> datasetListResult, List<float[]> datasetlist, int numFeatures) {
+        if (!datasetlist.isEmpty()) {
+            float[][] temp = new float[datasetlist.size()][numFeatures + 1];
+            for (int j = 0; j < datasetlist.size(); j++) {
+                for (int l = 0; l < numFeatures + 1; l++) {
+                    temp[j][l] = datasetlist.get(j)[l];
+                    System.out.print(" " + temp[j][l] + " ");
+                }
+                System.out.println();
+            }
+            datasetListResult.add(temp);
+        }
+    }
+
+//    public void printTree(Node tree, String indent) {
+//        if (tree.getValue() != null) {
+//            System.out.println(tree.getValue());
+//        } else {
+//            System.out.println("X_" + tree.getFeatureIndex() + " <= " + tree.getThreshold() + " ? " + tree.getInfoGain());
+//            System.out.print(indent + "left: ");
+//            printTree(tree.getLeft(), indent + "  ");
+//            System.out.print(indent + "right: ");
+//            printTree(tree.getRight(), indent + "  ");
+//        }
+//    }
+
+//    public void fit(float[][] X, float[] Y) {
+//        float[][] dataset = new float[X.length][X[0].length + 1];
+//        for (int i = 0; i < X.length; i++) {
+//            System.arraycopy(X[i], 0, dataset[i], 0, X[i].length);
+//            dataset[i][X[i].length] = Y[i];
+//        }
+//
+//        root = buildTree(dataset, 0);
+//    }
+
+//        public float[] predictAll(float[][] data, int depth) {
+//        return new float[0];
+//    }
+
+    public float[] calculateLeafValue(float[] Y) {
+        Map<Float, Integer> counts = new HashMap<>();
+        for (float value : Y) {
+            counts.put(value, counts.getOrDefault(value, 0) + 1);
+        }
+
+        float maxCount = Float.NEGATIVE_INFINITY;
+        float leafValue = 0;
+
+        for (Map.Entry<Float, Integer> entry : counts.entrySet()) {
+            if (entry.getValue() > maxCount) {
+                maxCount = entry.getValue();
+                leafValue = entry.getKey();
+            }
+        }
+
+        return new float[]{leafValue};
+    }
+
+    public float accuracyScore(float[] correctLabels, float[] predictedLabels) {
+        int correctPredicted = 0;
+        for (int i = 0; i < correctLabels.length; i++) {
+            if (correctLabels[i] == predictedLabels[i])
+                correctPredicted++;
+        }
+        return (float) ((float) correctPredicted / correctLabels.length * 100.0);
+    }
 }

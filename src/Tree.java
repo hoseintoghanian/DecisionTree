@@ -5,13 +5,44 @@ public class Tree {
     int featureIndex;
     int threshold;
     Node root;
-
     public Tree(int featureIndex, int threshold) {
         this.featureIndex = featureIndex;
         this.threshold = threshold;
     }
 
     public Tree(Node root) {
+        this.root = root;
+    }
+
+    public int getDepth() {
+        return depth;
+    }
+
+    public int setDepth() {
+        return depth;
+    }
+
+    public int getFeatureIndex() {
+        return featureIndex;
+    }
+
+    public void setFeatureIndex(int featureIndex) {
+        this.featureIndex = featureIndex;
+    }
+
+    public int getThreshold() {
+        return threshold;
+    }
+
+    public void setThreshold(int threshold) {
+        this.threshold = threshold;
+    }
+
+    public Node getRoot() {
+        return root;
+    }
+
+    public void setRoot(Node root) {
         this.root = root;
     }
 
@@ -39,12 +70,26 @@ public class Tree {
 
     //calculate entropy for a set of numbers
     public float entropy(float[] labels) {
-        float[] classLabels = Arrays.stream(labels).distinct().toArray();
+        float[] classLabels =  Arrays.stream(labels).distinct().toArray();
         float entropy = 0;
+
         for (float cls : classLabels) {
             float pCls = (float) Arrays.stream(labels).filter(value -> value == cls).count() / labels.length;
             entropy += -pCls * Math.log(pCls) / Math.log(2);
         }
+
         return entropy;
     }
+
+//    public float giniIndex(float[] y) {
+//        float[] classLabels = Arrays.stream(y).distinct().toArray();
+//        float gini = 0;
+//
+//        for (float cls : classLabels) {
+//            float pCls = (float) Arrays.stream(y).filter(value -> value == cls).count() / y.length;
+//            gini += Math.pow(pCls, 2);
+//        }
+//
+//        return 1 - gini;
+//    }
 }
