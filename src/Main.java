@@ -5,81 +5,85 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
-    public static int numberOfLabels = 0;
-
     public static void main(String[] args) {
-        String[] featureNames = {"HighBP", "HighChol", "CholCheck", "Smoker", "Stroke",
-                "HeartDiseaseorAttack", "PhysActivity", "Fruits", "Veggies",
-                "HvyAlcoholConsump", "AnyHealthcare", "NoDocbcCost", "GenHlth",
-                "DiffWalk", "Sex", "Education", "Income"};
+//        String[] featureNames = {"HighBP", "HighChol", "CholCheck", "Smoker", "Stroke",
+//                "HeartDiseaseorAttack", "PhysActivity", "Fruits", "Veggies",
+//                "HvyAlcoholConsump", "AnyHealthcare", "NoDocbcCost", "GenHlth",
+//                "DiffWalk", "Sex", "Education", "Income"};
 
-        float[][] feature = readCSV("Data/feature_train.csv");
-        float[][] label = readCSV("Data/label_train.csv");
+        float[][] firstFeatureTrain = readDataFiles("Data/feature_train.csv");
+        float[][] firstLabelTrain = readDataFiles("Data/label_train.csv");
+        float[][] firstFeatureTest = readDataFiles("Data/feature_test.csv");
+        float[][] firstLabelTest = readDataFiles("Data/label_test.csv");
 
-        numberOfLabels /= 2;
-
-        float[][] featureCopy = new float[15][17];
-        for (int i = 0; i < 15; i++) {
-            System.arraycopy(feature[i], 0, featureCopy[i], 0, 17);
+        float[] labelTrain = new float[firstLabelTrain.length];
+        for (int i = 0; i < firstLabelTrain.length; i++) {
+            labelTrain[i] = firstLabelTrain[i][0];
         }
 
-        float[] labelCopy = new float[numberOfLabels];
-        for (int i = 0; i < numberOfLabels; i++) {
-            labelCopy[i] = label[i][0];
+        float[] labelTest = new float[firstLabelTest.length];
+        for (int i = 0; i < firstLabelTest.length; i++) {
+            labelTest[i] = firstLabelTest[i][0];
         }
 
-        Tree tree = new Tree(0, 0);
+        Tree tree = new Tree(0);
+
+        // Small temporary test on dataset
+        float[][] data = new float[30][18];
+        for (int i = 0; i < 30; i++) {
+            for (int j = 0; j < 17; j++) {
+                data[i][j] = firstFeatureTrain[i][j];
+//                    System.out.print(data[i][j] + " ");
+            }
+//                System.out.println();
+        }
+        System.out.println("Dataset test = ");
+        float[][] temp_test = new float[30][18];
+        for (int i = 0; i < 30; i++) {
+            for (int j = 0; j < 17; j++) {
+                temp_test[i][j] = firstFeatureTest[i][j];
+                System.out.print(temp_test[i][j] + " ");
+            }
+            System.out.println();
+        }
+
 
         ArrayList<Integer> featureArr = new ArrayList<>();
         for (int i = 0; i < 17; i++) {
             featureArr.add(i, i);
         }
-        DecisionTreeClassifier decisionTree = new DecisionTreeClassifier(tree, featureCopy, labelCopy);
-        Node root = decisionTree.buildTree(featureCopy, 0, 6, featureArr);
-        System.out.println("Decision tree Generated");
+        for (int i = 0; i < data.length; i++) {
+            data[i][data[0].length - 1] = labelTrain[i];
+        }
 
-//		// Train-Test split
-//		float[][] X = new float[feature.length][feature[0].length - 1];
-//		float[] Y = new float[feature.length];
-//		for (int i = 0; i < feature.length; i++) {
-//			System.arraycopy(feature[i], 0, X[i], 0, feature[i].length - 1);
-//			Y[i] = feature[i][feature[i].length - 1];
-//		}
-//
-//		int randomState = 41;
-//		float[][] X_train, X_test;
-//		float[] Y_train, Y_test;
-//
-//		// Assuming train_test_split is similar to Python's sklearn.model_selection.train_test_split
-//		trainTestSplit(X, Y, 0.2, randomState, X_train, X_test, Y_train, Y_test);
-//
-//		// Fit the model
-//		DecisionTreeClassifier classifier = new DecisionTreeClassifier(3, 3);
-//		classifier.fit(X_train, Y_train);
-//		classifier.printTree();
-//
-//		// Test the model
-//		float[] Y_pred = classifier.predict(X_test);
-//		System.out.println(Arrays.toString(Y_pred));
-//
-//		// Assuming accuracy_score is similar to Python's sklearn.metrics.accuracy_score
-//		float accuracy = accuracyScore(Y_test, Y_pred);
-//		System.out.println("Accuracy: " + accuracy);
+        // Train-Test split
+        DTreeClassifier dTreeClassifier = new DTreeClassifier(data, labelTrain);
+        Node root = tree.createTree(data, 0, featureArr);
+        System.out.println("Decision tree Built Successfully  * o *");
 
-        // Example usage with a list of children Nodes
-//        Node child1 = new Node(new float[]{1.0, 1.0, 0.0 , 2.0 , 3.0 , 3.0});
-//        Node child2 = new Node(new float[]{1.0, 1.0, 1.0 , 5.0});
-//        Node Parent = new Node(new float[]{0} , 0 , new float[]{1.0, 0.0, 1.0, 2.0, 3.0});
-//        Parent.addChild(child1);
-//        Parent.addChild(child2);
-//		Tree Test_tree = new Tree(Parent);
-//        Test_tree.informationGain(Parent);
-//        System.out.println("information gain of " + Arrays.toString(Parent.getValue()) + " Node is : " + Parent.getInfoGain());
-//        Test_tree.informationGain(child1);
-//        System.out.println("information gain of " + Arrays.toString(child1.getValue()) + " Node is : " + child1.getInfoGain());
+        // Test the model
+        System.out.print("predicted Labels : ");
+        float[] predictedLabels = dTreeClassifier.makePrediction(temp_test, new Tree(root), featureArr);
+        for (int i = 0; i < predictedLabels.length; i++) {
+            System.out.print(predictedLabels[i] + " ");
+        }
+        int[] label_test_temporary = new int[predictedLabels.length];
+        for (int i = 0; i < predictedLabels.length; i++) {
+            label_test_temporary[i] = (int) labelTest[i];
+        }
+        // Assuming accuracy_score
+        float accuracy = dTreeClassifier.accuracy(label_test_temporary, predictedLabels);
+
+        if (accuracy < 0.75) {
+            System.out.println("Your Fucking accuracy is = " + accuracy);
+        } else {
+            System.out.println(" ***  Congratulations *o*  ***");
+            float myfloat = (float) (accuracy / 100.0);
+            System.out.printf("Your Algorithm has %.2f accuracy !!!%n \n", myfloat);
+        }
     }
 
-    public static float[][] readCSV(String fileAddress) {
+    public static float[][] readDataFiles(String fileAddress) {
         List<float[]> dataList = new ArrayList<>();
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(fileAddress))) {
             String line;
@@ -91,7 +95,6 @@ public class Main {
                     row[i] = Float.parseFloat(values[i]);
                 }
                 dataList.add(row);
-                numberOfLabels++;
             }
         } catch (IOException e) {
             e.printStackTrace();
